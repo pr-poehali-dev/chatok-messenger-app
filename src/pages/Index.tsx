@@ -38,14 +38,17 @@ export default function Index() {
     }
   };
 
+  const showLeftPanel = !openChat;
+  const showRightPanel = openChat;
+
   return (
-    <div className="mesh-bg min-h-screen flex items-center justify-center p-2 md:p-4">
+    <div className="mesh-bg min-h-screen flex items-center justify-center sm:p-2 md:p-4">
       <div
-        className="w-full max-w-5xl h-[calc(100vh-16px)] md:h-[680px] glass rounded-3xl overflow-hidden flex shadow-2xl"
+        className="w-full max-w-5xl h-screen sm:h-[calc(100vh-16px)] md:h-[680px] glass sm:rounded-3xl overflow-hidden flex shadow-2xl"
         style={{ boxShadow: "0 32px 80px hsl(271 91% 65% / 0.2), 0 0 0 1px hsl(240 12% 22% / 0.6)" }}>
 
-        {/* Sidebar */}
-        <div className="w-16 md:w-20 flex flex-col items-center py-5 gap-1 border-r border-white/5 flex-shrink-0">
+        {/* Bottom nav on mobile, sidebar on desktop */}
+        <div className="hidden sm:flex w-16 md:w-20 flex-col items-center py-5 gap-1 border-r border-white/5 flex-shrink-0">
           <div
             className="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center mb-3 flex-shrink-0"
             style={{ boxShadow: "0 4px 16px hsl(271 91% 65% / 0.5)" }}>
@@ -73,38 +76,66 @@ export default function Index() {
           })}
         </div>
 
-        {/* Left panel */}
+        {/* Left panel — full width on mobile */}
         <div
-          className={`w-72 border-r border-white/5 flex-shrink-0 ${openChat ? "hidden md:block" : "block"}`}
+          className={`${showLeftPanel ? "flex" : "hidden"} sm:flex w-full sm:w-72 border-r border-white/5 flex-shrink-0 flex-col`}
           style={{ background: "hsl(240 18% 8%)" }}>
-          {renderSection()}
+          <div className="flex-1 overflow-hidden">
+            {renderSection()}
+          </div>
+
+          {/* Mobile bottom nav */}
+          <div className="flex sm:hidden border-t border-white/5 bg-card/80 backdrop-blur-lg">
+            {NAV_ITEMS.map(item => {
+              const badge = item.id === "chats" ? totalUnread : item.id === "notifications" ? notifUnread : 0;
+              return (
+                <button key={item.id}
+                  onClick={() => { setSection(item.id); setOpenChat(null); }}
+                  className={`nav-item flex-1 flex flex-col items-center gap-0.5 py-2.5 relative ${section === item.id ? "active" : ""}`}>
+                  <div className="nav-icon-wrap w-9 h-9 flex items-center justify-center relative">
+                    <Icon name={item.icon as "Search"} size={18} />
+                    {badge > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full gradient-btn flex items-center justify-center text-[8px] text-white font-bold">
+                        {badge}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[9px] font-medium leading-none">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Right panel */}
-        <div className={`flex-1 ${openChat ? "block" : "hidden md:block"}`}>
+        {/* Right panel — chat or placeholder */}
+        <div className={`flex-1 ${showRightPanel ? "flex flex-col" : "hidden sm:flex sm:flex-col"}`}>
           {openChat ? (
             <ChatView chat={openChat} onBack={() => setOpenChat(null)} />
           ) : (
             <div className="h-full flex flex-col items-center justify-center gap-4 text-center p-8">
               <div
-                className="w-20 h-20 rounded-3xl gradient-btn flex items-center justify-center"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl gradient-btn flex items-center justify-center"
                 style={{ boxShadow: "0 8px 32px hsl(271 91% 65% / 0.4)" }}>
-                <Icon name="MessageCircle" size={36} className="text-white" />
+                <Icon name="MessageCircle" size={32} className="text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-montserrat gradient-text">ChatOK</h2>
+                <h2 className="text-xl sm:text-2xl font-bold font-montserrat gradient-text">ChatOK</h2>
                 <p className="text-sm text-muted-foreground mt-2 max-w-xs leading-relaxed">
-                  Выберите чат слева, чтобы начать общение. Голосовые и видеозвонки доступны внутри чата.
+                  Выберите канал или чат, чтобы начать. Голосовые сообщения и звонки доступны внутри.
                 </p>
               </div>
-              <div className="flex gap-3 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2 justify-center">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary text-xs text-muted-foreground">
-                  <Icon name="Phone" size={12} />
-                  Голосовые звонки
+                  <Icon name="Mic" size={12} />
+                  Голосовые
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary text-xs text-muted-foreground">
-                  <Icon name="Video" size={12} />
-                  Видеозвонки
+                  <Icon name="Phone" size={12} />
+                  Звонки
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary text-xs text-muted-foreground">
+                  <Icon name="Megaphone" size={12} />
+                  Каналы
                 </div>
               </div>
             </div>
